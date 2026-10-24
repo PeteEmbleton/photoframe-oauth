@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Photo Frame — Sign-in code</title>
+  <style>
+    body {
+      margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+      font-family: system-ui, sans-serif; background: #111; color: #eee;
+      text-align: center; padding: 24px;
+    }
+    #qr { background: #fff; padding: 16px; border-radius: 8px; }
+    #msg { max-width: 28rem; line-height: 1.4; }
+    #err { color: #f66; }
+    code { word-break: break-all; font-size: 12px; opacity: 0.7; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+  <h1>Hold this QR up to the photo frame</h1>
+  <p id="msg">Sign-in finished. Point this screen at the frame camera.</p>
+  <div id="qr"></div>
+  <p id="err"></p>
+  <code id="raw"></code>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var err = params.get("error");
+      var code = params.get("code");
+      if (err) {
+        document.getElementById("err").textContent = "Google error: " + err;
+        document.getElementById("msg").textContent = "Close this tab and try again from the frame.";
+        return;
+      }
+      if (!code) {
+        document.getElementById("err").textContent = "No code in URL. Open this page only via Google redirect.";
+        return;
+      }
+      // Payload the frame camera expects
+      var payload = "photoframe-oauth:" + code;
+      document.getElementById("raw").textContent = payload;
+      QRCode.toCanvas(document.createElement("canvas"), payload, {
+        width: 320,
+        margin: 2,
+        errorCorrectionLevel: "M"
+      }, function (e, canvas) {
+        if (e) {
+          document.getElementById("err").textContent = String(e);
+          return;
+        }
+        document.getElementById("qr").appendChild(canvas);
+      });
+    })();
+  </script>
+</body>
+</html>
